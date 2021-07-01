@@ -212,7 +212,7 @@ def _extract_type(base_type, decl):
                 tt = _extract_template_args(arg_node)
                 template_parameters.append(tt)
             else:
-                raise Exception("can not handle template arg_node %r" % arg_node)
+                raise Exception("can not handle template arg_node %r" % arg_node.pos[0].file_path +" line: %r" % arg_node.pos[1]+ " col: %r" % arg_node.pos[2])
 
         base_type = base_type.base_type_node
 
@@ -515,7 +515,11 @@ def parse_pxd_file(path):
         handler = handlers.get(type(body))
         if handler is not None:
             # L.info("parsed %s, handler=%s" % (body.__class__, handler.im_self))
-            result.append(handler(body, lines, path))
+            try:
+                result.append(handler(body, lines, path))
+            except Exception:
+                raise Exception("failed to parse " +path)
+                
         else:
             for node in getattr(body, "stats", []):
                 handler = handlers.get(type(node))
